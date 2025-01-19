@@ -3,10 +3,20 @@ services:
     volumes:
       - ollama:/root/.ollama
     container_name: ollama
-    pull_policy: always
+    pull_policy: if_not_present
     tty: true
     restart: unless-stopped
     image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
+    ports:
+      - ${OLLAMA_WEBAPI_PORT-11434}:11434
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: ${OLLAMA_GPU_DRIVER-nvidia}
+    #           count: ${OLLAMA_GPU_COUNT-1}
+    #           capabilities:
+    #             - gpu
 
   open-webui:
     build:
@@ -18,6 +28,7 @@ services:
     container_name: open-webui
     volumes:
       - open-webui:/app/backend/data
+      # - ${PWD}/vector_db:/app/backend/data/vector_db
     depends_on:
       - ollama
     ports:
@@ -28,7 +39,28 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: ${OLLAMA_GPU_DRIVER-nvidia}
+    #           count: ${OLLAMA_GPU_COUNT-1}
+    #           capabilities:
+    #             - gpu
+
+  pipelines:
+    image: ghcr.io/open-webui/pipelines:main
+    container_name: pipelines
+    ports:
+      - "9099:9099"
+    volumes:
+      - pipelines:/app/pipelines
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
 
 volumes:
   ollama: {}
   open-webui: {}
+  pipelines: {}

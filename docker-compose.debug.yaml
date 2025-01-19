@@ -1,0 +1,55 @@
+services:
+  ollama:
+    extends:
+      file: docker-compose.yaml
+      service: ollama
+
+  open-webui:
+    build:
+      context: .
+      args:
+        OLLAMA_BASE_URL: '/ollama'
+      dockerfile: Dockerfile
+    image: open-webui:v0.5.4-local-build
+    container_name: open-webui
+    volumes:
+      - open-webui:/app/backend/data
+      # - ${PWD}/vector_db:/app/backend/data/vector_db
+    depends_on:
+      - ollama
+    environment:
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'WEBUI_SECRET_KEY='
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - PYTHONDEBUG=1
+      - PYTHONDEVMODE=1
+      - PORT=8080
+      - USE_DEBUGPY=true
+    ports:
+      - ${OPEN_WEBUI_PORT-3000}:8080
+      - 5678:5678
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    healthcheck:
+      test: 
+        - CMD
+        - /bin/sh
+        - -c
+        - 'nc -z host.docker.internal 5678'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  
+
+  pipelines:
+    extends:
+      file: docker-compose.yaml
+      service: pipelines
+
+volumes:
+  ollama: {}
+  open-webui: {}
+  pipelines: {}

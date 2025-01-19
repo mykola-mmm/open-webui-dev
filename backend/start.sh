@@ -54,4 +54,12 @@ if [ -n "$SPACE_ID" ]; then
   export WEBUI_URL=${SPACE_HOST}
 fi
 
-WEBUI_SECRET_KEY="$WEBUI_SECRET_KEY" exec uvicorn open_webui.main:app --host "$HOST" --port "$PORT" --forwarded-allow-ips '*'
+if [[ "${USE_DEBUGPY,,}" == "true" ]]; then
+  echo "Installing debugpy"
+  pip install -q debugpy
+  echo "Starting with debugpy on port 5678"
+  WEBUI_SECRET_KEY="$WEBUI_SECRET_KEY" python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m uvicorn open_webui.main:app --host "$HOST" --port "$PORT" --forwarded-allow-ips '*'
+else
+  echo "Starting without debugpy"
+  WEBUI_SECRET_KEY="$WEBUI_SECRET_KEY" exec uvicorn open_webui.main:app --host "$HOST" --port "$PORT" --forwarded-allow-ips '*'
+fi

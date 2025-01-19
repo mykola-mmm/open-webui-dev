@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Debug Docker Compose",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.debug.yaml up -d --wait ",
+
+            // "command": "docker compose -f docker-compose.debug.yaml up -d --wait open-webui ollama pipelines",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
